@@ -37,7 +37,7 @@ def test_index_shows_script_names(app_client):
 
 def test_index_shows_no_runs_when_empty(app_client):
     html = app_client.get("/").data.decode()
-    assert html.count("No runs recorded") == 2
+    assert html.count("No runs recorded") == 3
 
 
 def test_index_shows_run_history_after_run_posted(app_client):
@@ -171,3 +171,25 @@ def test_multiple_runs_accumulate(app_client, fresh_db):
     _post(app_client, _run_payload(script="medium_clap"))
     assert len(fresh_db.get_all_runs("substack_heart")) == 2
     assert len(fresh_db.get_all_runs("medium_clap")) == 1
+
+
+# ── blog_backup script ────────────────────────────────────────────────────────
+
+def test_index_shows_blog_backup(app_client):
+    html = app_client.get("/").data.decode()
+    assert "blog backup" in html
+
+
+def test_post_run_accepts_blog_backup(app_client, fresh_db):
+    resp = _post(app_client, _run_payload(script="blog_backup", processed=1, failed=0))
+    assert resp.status_code == 200
+    assert fresh_db.get_last_run("blog_backup")["status"] == "success"
+
+
+def test_post_run_blog_backup_crash_sends_alert(app_client):
+    with patch("app.send_alert") as mock_alert:
+        _post(app_client, _run_payload(script="blog_backup", status="crashed",
+                                       processed=0, failed=1,
+                                       errors=["pg_dump: error: connection failed"]))
+    mock_alert.assert_called_once()
+    assert "crashed" in mock_alert.call_args[0][0]

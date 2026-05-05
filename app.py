@@ -10,7 +10,12 @@ from db import get_all_runs, get_last_run, get_run_history, init_db, record_run
 app = Flask(__name__)
 
 API_KEY = os.environ.get("MONITOR_API_KEY", "")
-SCRIPTS = ["substack_heart", "medium_clap"]
+SCRIPTS = ["substack_heart", "medium_clap", "blog_backup"]
+SCRIPT_VERBS = {
+    "substack_heart": "hearted",
+    "medium_clap": "clapped",
+    "blog_backup": "backed up",
+}
 
 FAILURE_RATE_THRESHOLD = 0.30
 
@@ -57,7 +62,7 @@ def index():
         scripts.append({
             "name": name,
             "display": name.replace("_", " "),
-            "verb": "hearted" if "heart" in name else "clapped",
+            "verb": SCRIPT_VERBS.get(name, "processed"),
             "last": last,
             "history": get_run_history(name, days=14),
             "runs": runs,

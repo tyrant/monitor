@@ -14,7 +14,7 @@ from datetime import date
 from alert import send_alert
 from db import ran_today
 
-SCRIPTS = ["substack_heart", "medium_clap"]
+SCRIPTS = ["substack_heart", "medium_clap", "blog_backup"]
 
 
 def main():
