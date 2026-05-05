@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Script Monitor</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Script Monitor</h1>
+    <p class="subtitle">{{ now }}</p>
+  </header>
+
+  <main>
+    {% for script in scripts %}
+    {% set last = script.last %}
+    <article class="card {{ 'status-' + last.status if last else 'status-none' }}">
+
+      <div class="card-header">
+        <span class="dot"></span>
+        <h2>{{ script.display }}</h2>
+      </div>
+
+      {% if last %}
+        <p class="last-run">{{ last.ran_at_fmt }}</p>
+
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-value">{{ last.processed }}</span>
+            <span class="stat-label">{{ script.verb }}</span>
+          </div>
+          <div class="stat {{ 'stat-warn' if last.failed > 0 }}">
+            <span class="stat-value">{{ last.failed }}</span>
+            <span class="stat-label">failed</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ last.skipped }}</span>
+            <span class="stat-label">skipped</span>
+          </div>
+        </div>
+
+        {% if last.errors %}
+        <details class="errors">
+          <summary>{{ last.errors | length }} warning{{ 's' if last.errors | length != 1 }}</summary>
+          <ul>
+            {% for msg in last.errors %}
+            <li>{{ msg }}</li>
+            {% endfor %}
+          </ul>
+        </details>
+        {% endif %}
+
+      {% else %}
+        <p class="no-runs">No runs recorded</p>
+      {% endif %}
+
+      <div class="sparkline">
+        {% for day in script.history %}
+        <div class="spark spark-{{ day.status or 'none' }}"
+             title="{{ day.day }}{% if day.status %}: {{ day.status }}
+Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skipped }}{% endif %}"></div>
+        {% endfor %}
+      </div>
+
+    </article>
+    {% endfor %}
+  </main>
+</body>
+</html>

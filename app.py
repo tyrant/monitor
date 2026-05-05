@@ -1,0 +1,99 @@
+import json
+import os
+from datetime import datetime, timezone
+
+from flask import Flask, abort, jsonify, render_template, request
+
+from alert import send_alert
+from db import get_last_run, get_run_history, init_db, record_run
+
+app = Flask(__name__)
+
+API_KEY = os.environ.get("MONITOR_API_KEY", "")
+SCRIPTS = ["substack_heart", "medium_clap"]
+
+FAILURE_RATE_THRESHOLD = 0.30
+
+init_db()
+
+
+def _fmt_timestamp(iso):
+    """Convert UTC ISO string to a readable local-ish display string."""
+    if not iso:
+        return "—"
+    try:
+        dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+        dt = dt.astimezone()
+        today = datetime.now().date()
+        if dt.date() == today:
+            return f"Today, {dt.strftime('%H:%M')}"
+        yesterday = today.replace(day=today.day - 1)
+        if dt.date() == yesterday:
+            return f"Yesterday, {dt.strftime('%H:%M')}"
+        return dt.strftime("%-d %b %Y, %H:%M")
+    except ValueError:
+        return iso
+
+
+def _determine_status(client_status, processed, failed):
+    if client_status == "crashed":
+        return "crashed"
+    total = processed + failed
+    if total > 0 and failed / total > FAILURE_RATE_THRESHOLD:
+        return "partial"
+    return "success"
+
+
+@app.route("/")
+def index():
+    scripts = []
+    for name in SCRIPTS:
+        last = get_last_run(name)
+        if last:
+            last["ran_at_fmt"] = _fmt_timestamp(last["ran_at"])
+        scripts.append({
+            "name": name,
+            "display": name.replace("_", " "),
+            "verb": "hearted" if "heart" in name else "clapped",
+            "last": last,
+            "history": get_run_history(name, days=14),
+        })
+    return render_template("index.html", scripts=scripts, now=_fmt_timestamp(
+        datetime.now(timezone.utc).isoformat()
+    ))
+
+
+@app.route("/api/run", methods=["POST"])
+def receive_run():
+    if not API_KEY or request.headers.get("X-API-Key") != API_KEY:
+        abort(401)
+
+    data = request.get_json(silent=True)
+    if not data or data.get("script") not in SCRIPTS:
+        abort(400)
+
+    script = data["script"]
+    processed = int(data.get("processed", 0))
+    failed = int(data.get("failed", 0))
+    skipped = int(data.get("skipped", 0))
+    errors = data.get("errors") or []
+    ran_at = data.get("ran_at") or datetime.now(timezone.utc).isoformat()
+
+    status = _determine_status(data.get("status", "success"), processed, failed)
+
+    record_run(script, ran_at, status, processed, failed, skipped, errors)
+
+    if status == "crashed":
+        send_alert(
+            f"[Monitor] {script} crashed",
+            f"{script} crashed at {ran_at}.\n\nErrors:\n\n" + "\n".join(errors),
+        )
+    elif status == "partial":
+        total = processed + failed
+        pct = int(failed / total * 100) if total else 0
+        send_alert(
+            f"[Monitor] {script} high failure rate ({pct}%)",
+            f"{script} ran at {ran_at}.\n\nProcessed: {processed}  Failed: {failed} ({pct}%)  Skipped: {skipped}",
+        )
+
+    return jsonify({"ok": True, "status": status})

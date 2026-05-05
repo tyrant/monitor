@@ -1,0 +1,7 @@
+monitor.db
+.env
+.htpasswd
+ssl/
+venv/
+__pycache__/
+*.pyc
