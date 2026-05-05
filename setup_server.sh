@@ -7,7 +7,7 @@ SERVER="noob@119.9.131.4"
 REMOTE_DIR="/home/noob/monitor"
 
 echo "==> Syncing files..."
-rsync -av --exclude='.env' --exclude='monitor.db' --exclude='__pycache__' --exclude='venv' \
+rsync -av --exclude='.env' --exclude='monitor.db' --exclude='__pycache__' --exclude='venv' --exclude='.git' \
   "$(dirname "$0")/" "$SERVER:$REMOTE_DIR/"
 
 echo "==> Installing dependencies..."

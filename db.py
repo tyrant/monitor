@@ -1,7 +1,7 @@
 import json
 import os
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 DB_PATH = os.environ.get(
     "MONITOR_DB_PATH",
@@ -59,7 +59,7 @@ def get_last_run(script):
 
 def get_run_history(script, days=14):
     """One record per day (most recent run) for the last N days, oldest first."""
-    since = (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%d")
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d")
     with _conn() as conn:
         rows = conn.execute(
             """
@@ -76,13 +76,28 @@ def get_run_history(script, days=14):
     by_day = {r["day"]: dict(r) for r in rows}
     history = []
     for i in range(days):
-        d = (datetime.utcnow() - timedelta(days=days - 1 - i)).strftime("%Y-%m-%d")
+        d = (datetime.now(timezone.utc) - timedelta(days=days - 1 - i)).strftime("%Y-%m-%d")
         history.append(by_day.get(d, {"day": d, "status": None, "processed": 0, "failed": 0, "skipped": 0}))
     return history
 
 
+def get_all_runs(script, limit=60):
+    with _conn() as conn:
+        rows = conn.execute(
+            """SELECT * FROM runs WHERE script = ?
+               ORDER BY ran_at DESC LIMIT ?""",
+            (script, limit),
+        ).fetchall()
+    result = []
+    for row in rows:
+        r = dict(row)
+        r["errors"] = json.loads(r["errors"])
+        result.append(r)
+    return result
+
+
 def ran_today(script):
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     with _conn() as conn:
         row = conn.execute(
             "SELECT id FROM runs WHERE script = ? AND date(ran_at) = ? LIMIT 1",

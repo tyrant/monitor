@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from flask import Flask, abort, jsonify, render_template, request
 
 from alert import send_alert
-from db import get_last_run, get_run_history, init_db, record_run
+from db import get_all_runs, get_last_run, get_run_history, init_db, record_run
 
 app = Flask(__name__)
 
@@ -51,12 +51,16 @@ def index():
         last = get_last_run(name)
         if last:
             last["ran_at_fmt"] = _fmt_timestamp(last["ran_at"])
+        runs = get_all_runs(name)
+        for r in runs:
+            r["ran_at_fmt"] = _fmt_timestamp(r["ran_at"])
         scripts.append({
             "name": name,
             "display": name.replace("_", " "),
             "verb": "hearted" if "heart" in name else "clapped",
             "last": last,
             "history": get_run_history(name, days=14),
+            "runs": runs,
         })
     return render_template("index.html", scripts=scripts, now=_fmt_timestamp(
         datetime.now(timezone.utc).isoformat()

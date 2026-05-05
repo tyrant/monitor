@@ -63,6 +63,47 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
         {% endfor %}
       </div>
 
+      {% if script.runs %}
+      <div class="run-history">
+        <h3>Run history</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Status</th>
+              <th>{{ script.verb | capitalize }}</th>
+              <th>Failed</th>
+              <th>Skipped</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for run in script.runs %}
+            <tr class="row-{{ run.status }}">
+              <td class="td-date">{{ run.ran_at_fmt }}</td>
+              <td><span class="badge badge-{{ run.status }}">{{ run.status }}</span></td>
+              <td>{{ run.processed }}</td>
+              <td class="{{ 'td-failed' if run.failed > 0 }}">{{ run.failed }}</td>
+              <td>{{ run.skipped }}</td>
+              <td>
+                {% if run.errors %}
+                <details class="row-errors">
+                  <summary>{{ run.errors | length }} warning{{ 's' if run.errors | length != 1 }}</summary>
+                  <ul>
+                    {% for msg in run.errors %}
+                    <li>{{ msg }}</li>
+                    {% endfor %}
+                  </ul>
+                </details>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
     </article>
     {% endfor %}
   </main>
