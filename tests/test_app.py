@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timezone
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 
 HEADERS = {"X-API-Key": "test-key", "Content-Type": "application/json"}
@@ -193,3 +193,62 @@ def test_post_run_blog_backup_crash_sends_alert(app_client):
                                        errors=["pg_dump: error: connection failed"]))
     mock_alert.assert_called_once()
     assert "crashed" in mock_alert.call_args[0][0]
+
+
+# ── POST /trigger/<script> ────────────────────────────────────────────────────
+
+def test_trigger_redirects_with_triggered_param(app_client):
+    with patch("app.subprocess.Popen", return_value=MagicMock()):
+        resp = app_client.post("/trigger/substack_heart")
+    assert resp.status_code == 302
+    assert "triggered=substack_heart" in resp.headers["Location"]
+
+
+def test_trigger_calls_correct_command(app_client):
+    with patch("app.subprocess.Popen", return_value=MagicMock()) as mock_popen:
+        app_client.post("/trigger/substack_heart")
+    assert "substack_heart.py" in mock_popen.call_args[0][0][-1]
+
+
+def test_trigger_unknown_script_returns_404(app_client):
+    resp = app_client.post("/trigger/unknown_script")
+    assert resp.status_code == 404
+
+
+def test_trigger_already_running_redirects_to_busy(app_client):
+    import app as app_module
+    mock_proc = MagicMock()
+    mock_proc.poll.return_value = None
+    app_module._running["substack_heart"] = mock_proc
+
+    with patch("app.subprocess.Popen") as mock_popen:
+        resp = app_client.post("/trigger/substack_heart")
+
+    mock_popen.assert_not_called()
+    assert "busy=substack_heart" in resp.headers["Location"]
+
+
+def test_trigger_unavailable_redirects_gracefully(app_client):
+    with patch("app.subprocess.Popen", side_effect=FileNotFoundError):
+        resp = app_client.post("/trigger/substack_heart")
+    assert "unavailable=substack_heart" in resp.headers["Location"]
+
+
+def test_index_shows_run_now_buttons(app_client):
+    html = app_client.get("/").data.decode()
+    assert html.count("Run now") == 3
+
+
+def test_index_shows_triggered_message(app_client):
+    html = app_client.get("/?triggered=substack_heart").data.decode()
+    assert "triggered" in html.lower()
+
+
+def test_index_shows_busy_message(app_client):
+    html = app_client.get("/?busy=substack_heart").data.decode()
+    assert "already running" in html.lower()
+
+
+def test_index_shows_unavailable_message(app_client):
+    html = app_client.get("/?unavailable=substack_heart").data.decode()
+    assert "not available" in html.lower()

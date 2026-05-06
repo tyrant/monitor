@@ -267,6 +267,37 @@ tbody td {
   color: #555;
 }
 
+/* ── Run now button ───────────────────────────────── */
+
+.btn-run {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #d0d0d0;
+  background: #f7f7f7;
+  color: #444;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.btn-run:hover:not(:disabled) { background: #eaeaea; }
+.btn-run:disabled { color: #aaa; cursor: default; }
+
+/* ── Alert banner ─────────────────────────────────── */
+
+.alert {
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.alert-triggered { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+.alert-busy      { background: #fef9ec; color: #9a7d0a; border: 1px solid #f9e79f; }
+
 @media (max-width: 600px) {
   header { padding: 20px 16px 0; }
   main   { padding: 16px 16px 32px; }

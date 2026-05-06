@@ -13,6 +13,14 @@
   </header>
 
   <main>
+    {% if request.args.get('triggered') %}
+    <div class="alert alert-triggered">{{ request.args.get('triggered').replace('_', ' ') | capitalize }} triggered.</div>
+    {% elif request.args.get('busy') %}
+    <div class="alert alert-busy">{{ request.args.get('busy').replace('_', ' ') | capitalize }} is already running.</div>
+    {% elif request.args.get('unavailable') %}
+    <div class="alert alert-busy">{{ request.args.get('unavailable').replace('_', ' ') | capitalize }} is not available in this environment.</div>
+    {% endif %}
+
     {% for script in scripts %}
     {% set last = script.last %}
     <article class="card {{ 'status-' + last.status if last else 'status-none' }}">
@@ -20,6 +28,11 @@
       <div class="card-header">
         <span class="dot"></span>
         <h2>{{ script.display }}</h2>
+        <form method="post" action="/trigger/{{ script.name }}" style="margin-left:auto">
+          <button type="submit" class="btn-run" {% if script.name in running %}disabled{% endif %}>
+            {%- if script.name in running %}Running…{% else %}Run now{% endif -%}
+          </button>
+        </form>
       </div>
 
       {% if last %}

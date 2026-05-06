@@ -1,8 +1,9 @@
 import json
 import os
+import subprocess
 from datetime import datetime, timezone
 
-from flask import Flask, abort, jsonify, render_template, request
+from flask import Flask, abort, jsonify, redirect, render_template, request
 
 from alert import send_alert
 from db import get_all_runs, get_last_run, get_run_history, init_db, record_run
@@ -18,6 +19,14 @@ SCRIPT_VERBS = {
 }
 
 FAILURE_RATE_THRESHOLD = 0.30
+
+SCRIPT_COMMANDS = {
+    "substack_heart": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
+    "medium_clap":    ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/medium_clap.py"],
+    "blog_backup":    ["/home/noob/monitor/venv/bin/python", "/home/noob/monitor/run_backup.py"],
+}
+
+_running: dict[str, subprocess.Popen] = {}
 
 init_db()
 
@@ -49,6 +58,26 @@ def _determine_status(client_status, processed, failed):
     return "success"
 
 
+def _is_running(script: str) -> bool:
+    proc = _running.get(script)
+    return proc is not None and proc.poll() is None
+
+
+@app.route("/trigger/<script>", methods=["POST"])
+def trigger_script(script):
+    if script not in SCRIPTS:
+        abort(404)
+    if _is_running(script):
+        return redirect(f"/?busy={script}")
+    try:
+        _running[script] = subprocess.Popen(
+            SCRIPT_COMMANDS[script], env=os.environ.copy()
+        )
+    except FileNotFoundError:
+        return redirect(f"/?unavailable={script}")
+    return redirect(f"/?triggered={script}")
+
+
 @app.route("/")
 def index():
     scripts = []
@@ -67,9 +96,10 @@ def index():
             "history": get_run_history(name, days=14),
             "runs": runs,
         })
+    running = {s for s in SCRIPTS if _is_running(s)}
     return render_template("index.html", scripts=scripts, now=_fmt_timestamp(
         datetime.now(timezone.utc).isoformat()
-    ))
+    ), running=running)
 
 
 @app.route("/api/run", methods=["POST"])
