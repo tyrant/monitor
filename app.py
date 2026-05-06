@@ -2,11 +2,12 @@ import json
 import os
 import subprocess
 from datetime import datetime, timezone
+from urllib.parse import urlencode
 
 from flask import Flask, abort, jsonify, redirect, render_template, request
 
 from alert import send_alert
-from db import get_all_runs, get_last_run, get_run_history, init_db, record_run
+from db import get_all_runs, get_last_run, get_run_count, get_run_history, init_db, record_run
 
 app = Flask(__name__)
 
@@ -19,6 +20,7 @@ SCRIPT_VERBS = {
 }
 
 FAILURE_RATE_THRESHOLD = 0.30
+PAGE_SIZE = 10
 
 SCRIPT_COMMANDS = {
     "substack_heart": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
@@ -29,6 +31,12 @@ SCRIPT_COMMANDS = {
 _running: dict[str, subprocess.Popen] = {}
 
 init_db()
+
+
+def _page_url(current_args, script_name, page):
+    params = dict(current_args)
+    params[f"{script_name}_page"] = page
+    return "/?" + urlencode(params)
 
 
 def _fmt_timestamp(iso):
@@ -85,9 +93,15 @@ def index():
         last = get_last_run(name)
         if last:
             last["ran_at_fmt"] = _fmt_timestamp(last["ran_at"])
-        runs = get_all_runs(name)
+
+        total = get_run_count(name)
+        total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
+        page = max(1, min(int(request.args.get(f"{name}_page", 1)), total_pages))
+        offset = (page - 1) * PAGE_SIZE
+        runs = get_all_runs(name, limit=PAGE_SIZE, offset=offset)
         for r in runs:
             r["ran_at_fmt"] = _fmt_timestamp(r["ran_at"])
+
         scripts.append({
             "name": name,
             "display": name.replace("_", " "),
@@ -95,6 +109,10 @@ def index():
             "last": last,
             "history": get_run_history(name, days=14),
             "runs": runs,
+            "page": page,
+            "total_pages": total_pages,
+            "prev_url": _page_url(request.args, name, page - 1) if page > 1 else None,
+            "next_url": _page_url(request.args, name, page + 1) if page < total_pages else None,
         })
     running = {s for s in SCRIPTS if _is_running(s)}
     return render_template("index.html", scripts=scripts, now=_fmt_timestamp(

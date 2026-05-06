@@ -195,6 +195,49 @@ def test_post_run_blog_backup_crash_sends_alert(app_client):
     assert "crashed" in mock_alert.call_args[0][0]
 
 
+# ── Pagination ───────────────────────────────────────────────────────────────
+
+def _post_runs(client, n, script="substack_heart"):
+    for i in range(n):
+        _post(client, _run_payload(script=script, processed=i))
+
+
+def test_index_shows_10_runs_per_page(app_client):
+    _post_runs(app_client, 15)
+    html = app_client.get("/").data.decode()
+    # processed values 14..5 on page 1; "4" would only appear on page 2
+    assert html.count('<tr class="row-success"') == 10
+
+
+def test_index_shows_pagination_controls_when_more_than_one_page(app_client):
+    _post_runs(app_client, 11)
+    html = app_client.get("/").data.decode()
+    assert "Next →" in html
+
+
+def test_index_no_pagination_controls_when_one_page(app_client):
+    _post_runs(app_client, 5)
+    html = app_client.get("/").data.decode()
+    assert "Next →" not in html
+
+
+def test_index_page_2_shows_prev_link_not_next(app_client):
+    _post_runs(app_client, 12)
+    html = app_client.get("/?substack_heart_page=2").data.decode()
+    assert 'href="/?substack_heart_page=1"' in html
+    assert 'href="/?substack_heart_page=3"' not in html
+
+
+def test_index_preserves_other_scripts_page_params(app_client):
+    _post_runs(app_client, 11, script="substack_heart")
+    _post_runs(app_client, 11, script="medium_clap")
+    html = app_client.get("/?medium_clap_page=2").data.decode()
+    # medium_clap prev link points to page 1 and preserves nothing extra
+    assert "medium_clap_page=1" in html
+    # substack_heart next link preserves medium_clap_page=2
+    assert "medium_clap_page=2" in html
+
+
 # ── POST /trigger/<script> ────────────────────────────────────────────────────
 
 def test_trigger_redirects_with_triggered_param(app_client):

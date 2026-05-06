@@ -267,6 +267,35 @@ tbody td {
   color: #555;
 }
 
+/* ── Pagination ───────────────────────────────────── */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.page-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid #d0d0d0;
+  background: #f7f7f7;
+  color: #444;
+  text-decoration: none;
+  transition: background .15s;
+}
+
+.page-btn:hover { background: #eaeaea; }
+.page-btn-disabled { color: #bbb; cursor: default; }
+
+.page-info {
+  font-size: 12px;
+  color: #888;
+}
+
 /* ── Run now button ───────────────────────────────── */
 
 .btn-run {

@@ -73,6 +73,41 @@ def test_get_all_runs_scoped_to_script(fresh_db):
     assert len(fresh_db.get_all_runs("medium_clap")) == 1
 
 
+# ── get_run_count ─────────────────────────────────────────────────────────────
+
+def test_get_run_count_zero_when_empty(fresh_db):
+    assert fresh_db.get_run_count("substack_heart") == 0
+
+
+def test_get_run_count_returns_correct_count(fresh_db):
+    for i in range(5):
+        _record(fresh_db, days_ago=i)
+    assert fresh_db.get_run_count("substack_heart") == 5
+
+
+def test_get_run_count_scoped_to_script(fresh_db):
+    _record(fresh_db, script="substack_heart")
+    _record(fresh_db, script="substack_heart", days_ago=1)
+    _record(fresh_db, script="medium_clap")
+    assert fresh_db.get_run_count("substack_heart") == 2
+    assert fresh_db.get_run_count("medium_clap") == 1
+
+
+# ── get_all_runs — offset ─────────────────────────────────────────────────────
+
+def test_get_all_runs_with_offset(fresh_db):
+    for i in range(5):
+        _record(fresh_db, processed=i, days_ago=i)
+    # Newest first: processed 0, 1, 2, 3, 4 — offset 2 skips 0 and 1
+    runs = fresh_db.get_all_runs("substack_heart", limit=2, offset=2)
+    assert [r["processed"] for r in runs] == [2, 3]
+
+
+def test_get_all_runs_offset_beyond_end_returns_empty(fresh_db):
+    _record(fresh_db)
+    assert fresh_db.get_all_runs("substack_heart", limit=10, offset=5) == []
+
+
 # ── get_run_history ───────────────────────────────────────────────────────────
 
 def test_get_run_history_length(fresh_db):

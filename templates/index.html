@@ -76,7 +76,7 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
         {% endfor %}
       </div>
 
-      {% if script.runs %}
+      {% if script.runs or script.total_pages > 1 %}
       <div class="run-history">
         <h3>Run history</h3>
         <table>
@@ -114,6 +114,21 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
             {% endfor %}
           </tbody>
         </table>
+        {% if script.total_pages > 1 %}
+        <div class="pagination">
+          {% if script.prev_url %}
+          <a class="page-btn" href="{{ script.prev_url }}">← Prev</a>
+          {% else %}
+          <span class="page-btn page-btn-disabled">← Prev</span>
+          {% endif %}
+          <span class="page-info">{{ script.page }} / {{ script.total_pages }}</span>
+          {% if script.next_url %}
+          <a class="page-btn" href="{{ script.next_url }}">Next →</a>
+          {% else %}
+          <span class="page-btn page-btn-disabled">Next →</span>
+          {% endif %}
+        </div>
+        {% endif %}
       </div>
       {% endif %}
 

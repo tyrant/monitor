@@ -81,12 +81,19 @@ def get_run_history(script, days=14):
     return history
 
 
-def get_all_runs(script, limit=60):
+def get_run_count(script):
+    with _conn() as conn:
+        return conn.execute(
+            "SELECT COUNT(*) FROM runs WHERE script = ?", (script,)
+        ).fetchone()[0]
+
+
+def get_all_runs(script, limit=60, offset=0):
     with _conn() as conn:
         rows = conn.execute(
             """SELECT * FROM runs WHERE script = ?
-               ORDER BY ran_at DESC LIMIT ?""",
-            (script, limit),
+               ORDER BY ran_at DESC LIMIT ? OFFSET ?""",
+            (script, limit, offset),
         ).fetchall()
     result = []
     for row in rows:
