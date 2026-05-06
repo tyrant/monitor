@@ -75,6 +75,8 @@ h2 {
   font-size: 13px;
   color: #666;
   margin-bottom: 18px;
+  text-decoration: underline dotted #ccc;
+  cursor: default;
 }
 
 /* ── Stats ────────────────────────────────────────── */
@@ -213,6 +215,8 @@ tbody td {
 .td-date {
   white-space: nowrap;
   color: #444;
+  text-decoration: underline dotted #ccc;
+  cursor: default;
 }
 
 .td-failed {

@@ -195,6 +195,21 @@ def test_post_run_blog_backup_crash_sends_alert(app_client):
     assert "crashed" in mock_alert.call_args[0][0]
 
 
+# ── Timestamps ───────────────────────────────────────────────────────────────
+
+def test_timestamps_show_utc_tooltip(app_client, fresh_db):
+    _post(app_client, _run_payload(ran_at="2026-01-15T00:00:00+00:00"))
+    html = app_client.get("/").data.decode()
+    assert "UTC+" in html
+    assert "UTC" in html
+
+
+def test_timestamps_include_utc_time_in_title(app_client, fresh_db):
+    _post(app_client, _run_payload(ran_at="2026-01-15T00:00:00+00:00"))
+    html = app_client.get("/").data.decode()
+    assert "15 Jan 2026" in html
+
+
 # ── Pagination ───────────────────────────────────────────────────────────────
 
 def _post_runs(client, n, script="substack_heart"):

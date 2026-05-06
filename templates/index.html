@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Script Monitor</h1>
-    <p class="subtitle">{{ now }}</p>
+    <p class="subtitle" title="{{ now.title }}">{{ now.display }}</p>
   </header>
 
   <main>
@@ -36,7 +36,7 @@
       </div>
 
       {% if last %}
-        <p class="last-run">{{ last.ran_at_fmt }}</p>
+        <p class="last-run" title="{{ last.ran_at_fmt.title }}">{{ last.ran_at_fmt.display }}</p>
 
         <div class="stats">
           <div class="stat">
@@ -93,7 +93,7 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
           <tbody>
             {% for run in script.runs %}
             <tr class="row-{{ run.status }}">
-              <td class="td-date">{{ run.ran_at_fmt }}</td>
+              <td class="td-date" title="{{ run.ran_at_fmt.title }}">{{ run.ran_at_fmt.display }}</td>
               <td><span class="badge badge-{{ run.status }}">{{ run.status }}</span></td>
               <td>{{ run.processed }}</td>
               <td class="{{ 'td-failed' if run.failed > 0 }}">{{ run.failed }}</td>

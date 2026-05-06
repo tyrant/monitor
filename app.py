@@ -1,7 +1,8 @@
 import json
 import os
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 
 from flask import Flask, abort, jsonify, redirect, render_template, request
@@ -22,6 +23,8 @@ SCRIPT_VERBS = {
 FAILURE_RATE_THRESHOLD = 0.30
 PAGE_SIZE = 10
 
+NZ_TZ = ZoneInfo("Pacific/Auckland")
+
 SCRIPT_COMMANDS = {
     "substack_heart": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
     "medium_clap":    ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/medium_clap.py"],
@@ -40,21 +43,34 @@ def _page_url(current_args, script_name, page):
 
 
 def _fmt_timestamp(iso):
-    """Convert UTC ISO string to a readable local-ish display string."""
+    """Convert a UTC ISO string to a display dict with NZ local time and a UTC tooltip."""
     if not iso:
-        return "—"
+        return {"display": "—", "title": ""}
     try:
         dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-        dt = dt.astimezone()
-        today = datetime.now().date()
-        if dt.date() == today:
-            return f"Today, {dt.strftime('%H:%M')}"
-        yesterday = today.replace(day=today.day - 1)
-        if dt.date() == yesterday:
-            return f"Yesterday, {dt.strftime('%H:%M')}"
-        return dt.strftime("%-d %b %Y, %H:%M")
+        dt_nz = dt.astimezone(NZ_TZ)
+        dt_utc = dt.astimezone(timezone.utc)
+
+        today = datetime.now(NZ_TZ).date()
+        if dt_nz.date() == today:
+            display = f"Today, {dt_nz.strftime('%H:%M')}"
+        elif dt_nz.date() == today - timedelta(days=1):
+            display = f"Yesterday, {dt_nz.strftime('%H:%M')}"
+        else:
+            display = dt_nz.strftime("%-d %b %Y, %H:%M")
+
+        offset = dt_nz.utcoffset()
+        total_mins = int(offset.total_seconds() / 60)
+        sign = "+" if total_mins >= 0 else "-"
+        h, m = divmod(abs(total_mins), 60)
+        offset_str = f"UTC{sign}{h}" if m == 0 else f"UTC{sign}{h}:{m:02d}"
+
+        return {
+            "display": display,
+            "title": f"{offset_str} · {dt_utc.strftime('%-d %b %Y, %H:%M UTC')}",
+        }
     except ValueError:
-        return iso
+        return {"display": iso, "title": ""}
 
 
 def _determine_status(client_status, processed, failed):
