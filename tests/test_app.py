@@ -195,6 +195,52 @@ def test_post_run_blog_backup_crash_sends_alert(app_client):
     assert "crashed" in mock_alert.call_args[0][0]
 
 
+# ── GET /backup/<filename> ────────────────────────────────────────────────────
+
+def test_download_backup_rejects_invalid_filename(app_client):
+    assert app_client.get("/backup/../../etc/passwd").status_code == 404
+    assert app_client.get("/backup/backup-2026-01-01.sql").status_code == 404
+    assert app_client.get("/backup/backup-2026-01-01.sql.gz.exe").status_code == 404
+
+
+def test_download_backup_returns_404_when_file_missing(app_client):
+    assert app_client.get("/backup/backup-2026-01-01.sql.gz").status_code == 404
+
+
+def test_download_backup_serves_file(app_client, tmp_path):
+    import app as app_module
+    backup_file = tmp_path / "backup-2026-01-01.sql.gz"
+    backup_file.write_bytes(b"fake backup data")
+    original = app_module.BACKUP_DIR
+    app_module.BACKUP_DIR = str(tmp_path)
+    try:
+        resp = app_client.get("/backup/backup-2026-01-01.sql.gz")
+        assert resp.status_code == 200
+        assert resp.data == b"fake backup data"
+    finally:
+        app_module.BACKUP_DIR = original
+
+
+def test_index_shows_download_link_for_blog_backup(app_client):
+    _post(app_client, _run_payload(script="blog_backup", processed=1, failed=0))
+    html = app_client.get("/").data.decode()
+    assert "Download" in html
+    assert "/backup/backup-" in html
+
+
+def test_index_no_download_link_for_other_scripts(app_client):
+    _post(app_client, _run_payload(script="substack_heart"))
+    html = app_client.get("/").data.decode()
+    assert "/backup/backup-" not in html
+
+
+def test_index_no_download_link_for_crashed_blog_backup(app_client):
+    _post(app_client, _run_payload(script="blog_backup", status="crashed",
+                                   processed=0, failed=0))
+    html = app_client.get("/").data.decode()
+    assert "/backup/backup-" not in html
+
+
 # ── Timestamps ───────────────────────────────────────────────────────────────
 
 def test_timestamps_show_utc_tooltip(app_client, fresh_db):

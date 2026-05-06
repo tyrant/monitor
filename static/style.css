@@ -300,6 +300,18 @@ tbody td {
   color: #888;
 }
 
+/* ── Download link ────────────────────────────────── */
+
+.download-link {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3498db;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.download-link:hover { text-decoration: underline; }
+
 /* ── Run now button ───────────────────────────────── */
 
 .btn-run {

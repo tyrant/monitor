@@ -109,6 +109,9 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
                   </ul>
                 </details>
                 {% endif %}
+                {% if run.backup_filename is defined %}
+                <a href="/backup/{{ run.backup_filename }}" class="download-link">↓ Download</a>
+                {% endif %}
               </td>
             </tr>
             {% endfor %}

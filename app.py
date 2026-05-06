@@ -1,11 +1,12 @@
 import json
 import os
+import re
 import subprocess
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
-from flask import Flask, abort, jsonify, redirect, render_template, request
+from flask import Flask, abort, jsonify, redirect, render_template, request, send_file
 
 from alert import send_alert
 from db import get_all_runs, get_last_run, get_run_count, get_run_history, init_db, record_run
@@ -24,6 +25,8 @@ FAILURE_RATE_THRESHOLD = 0.30
 PAGE_SIZE = 10
 
 NZ_TZ = ZoneInfo("Pacific/Auckland")
+BACKUP_DIR = "/home/noob/blog/backups"
+_BACKUP_FILENAME_RE = re.compile(r"^backup-\d{4}-\d{2}-\d{2}\.sql\.gz$")
 
 SCRIPT_COMMANDS = {
     "substack_heart": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
@@ -34,6 +37,24 @@ SCRIPT_COMMANDS = {
 _running: dict[str, subprocess.Popen] = {}
 
 init_db()
+
+
+def _backup_filename(ran_at: str) -> str | None:
+    try:
+        dt = datetime.fromisoformat(ran_at.replace("Z", "+00:00"))
+        return f"backup-{dt.astimezone(timezone.utc).strftime('%Y-%m-%d')}.sql.gz"
+    except ValueError:
+        return None
+
+
+@app.route("/backup/<filename>")
+def download_backup(filename):
+    if not _BACKUP_FILENAME_RE.match(filename):
+        abort(404)
+    path = os.path.join(BACKUP_DIR, filename)
+    if not os.path.isfile(path):
+        abort(404)
+    return send_file(path, as_attachment=True)
 
 
 def _page_url(current_args, script_name, page):
@@ -117,6 +138,8 @@ def index():
         runs = get_all_runs(name, limit=PAGE_SIZE, offset=offset)
         for r in runs:
             r["ran_at_fmt"] = _fmt_timestamp(r["ran_at"])
+            if name == "blog_backup" and r["status"] != "crashed":
+                r["backup_filename"] = _backup_filename(r["ran_at"])
 
         scripts.append({
             "name": name,
