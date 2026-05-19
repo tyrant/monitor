@@ -63,6 +63,11 @@ def _page_url(current_args, script_name, page):
     return "/?" + urlencode(params)
 
 
+def _without_param(args, key):
+    params = {k: v for k, v in args.items() if k != key}
+    return "/?" + urlencode(params) if params else "/"
+
+
 def _fmt_timestamp(iso):
     """Convert a UTC ISO string to a display dict with NZ local time and a UTC tooltip."""
     if not iso:
@@ -154,9 +159,10 @@ def index():
             "next_url": _page_url(request.args, name, page + 1) if page < total_pages else None,
         })
     running = {s for s in SCRIPTS if _is_running(s)}
+    alert_dismiss = {k: _without_param(request.args, k) for k in ("triggered", "busy", "unavailable")}
     return render_template("index.html", scripts=scripts, now=_fmt_timestamp(
         datetime.now(timezone.utc).isoformat()
-    ), running=running)
+    ), running=running, alert_dismiss=alert_dismiss)
 
 
 @app.route("/api/run", methods=["POST"])

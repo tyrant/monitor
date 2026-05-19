@@ -333,12 +333,27 @@ tbody td {
 /* ── Alert banner ─────────────────────────────────── */
 
 .alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 14px;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 4px;
 }
+
+.alert-dismiss {
+  margin-left: 12px;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.45;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.alert-dismiss:hover { opacity: 1; }
 
 .alert-triggered { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
 .alert-busy      { background: #fef9ec; color: #9a7d0a; border: 1px solid #f9e79f; }

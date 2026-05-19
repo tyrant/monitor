@@ -14,11 +14,11 @@
 
   <main>
     {% if request.args.get('triggered') %}
-    <div class="alert alert-triggered">{{ request.args.get('triggered').replace('_', ' ') | capitalize }} triggered.</div>
+    <div class="alert alert-triggered">{{ request.args.get('triggered').replace('_', ' ') | capitalize }} triggered.<a href="{{ alert_dismiss.triggered }}" class="alert-dismiss">×</a></div>
     {% elif request.args.get('busy') %}
-    <div class="alert alert-busy">{{ request.args.get('busy').replace('_', ' ') | capitalize }} is already running.</div>
+    <div class="alert alert-busy">{{ request.args.get('busy').replace('_', ' ') | capitalize }} is already running.<a href="{{ alert_dismiss.busy }}" class="alert-dismiss">×</a></div>
     {% elif request.args.get('unavailable') %}
-    <div class="alert alert-busy">{{ request.args.get('unavailable').replace('_', ' ') | capitalize }} is not available in this environment.</div>
+    <div class="alert alert-busy">{{ request.args.get('unavailable').replace('_', ' ') | capitalize }} is not available in this environment.<a href="{{ alert_dismiss.unavailable }}" class="alert-dismiss">×</a></div>
     {% endif %}
 
     {% for script in scripts %}

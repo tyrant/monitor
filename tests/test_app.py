@@ -356,3 +356,26 @@ def test_index_shows_busy_message(app_client):
 def test_index_shows_unavailable_message(app_client):
     html = app_client.get("/?unavailable=substack_heart").data.decode()
     assert "not available" in html.lower()
+
+
+def test_triggered_alert_has_dismiss_link(app_client):
+    html = app_client.get("/?triggered=substack_heart").data.decode()
+    assert 'class="alert-dismiss"' in html
+    assert 'href="/"' in html
+
+
+def test_busy_alert_has_dismiss_link(app_client):
+    html = app_client.get("/?busy=substack_heart").data.decode()
+    assert 'class="alert-dismiss"' in html
+    assert 'href="/"' in html
+
+
+def test_unavailable_alert_has_dismiss_link(app_client):
+    html = app_client.get("/?unavailable=substack_heart").data.decode()
+    assert 'class="alert-dismiss"' in html
+    assert 'href="/"' in html
+
+
+def test_alert_dismiss_preserves_other_query_params(app_client):
+    html = app_client.get("/?triggered=substack_heart&substack_heart_page=2").data.decode()
+    assert 'href="/?substack_heart_page=2"' in html
