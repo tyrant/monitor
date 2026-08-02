@@ -43,3 +43,8 @@ bash setup_server.sh    # first-time only
 ## Monitored scripts
 - `substack_heart` — `~/Work/scripts/substack_heart.py`
 - `medium_clap` — `~/Work/scripts/medium_clap.py`
+- `gmail_substack_archive` — `~/Work/scripts/gmail_substack_archive.py`
+- `blog_backup` — `~/Work/monitor/run_backup.py`
+- `ticketmaster_import` — `comedy-gigs-app` (remote; reports in, not triggerable)
+
+The `SCRIPTS` list is duplicated in `app.py` and `check_missing.py` — update both when adding a script.

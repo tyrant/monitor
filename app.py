@@ -14,11 +14,13 @@ from db import get_all_runs, get_last_run, get_run_count, get_run_history, init_
 app = Flask(__name__)
 
 API_KEY = os.environ.get("MONITOR_API_KEY", "")
-SCRIPTS = ["substack_heart", "medium_clap", "blog_backup"]
+SCRIPTS = ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup", "ticketmaster_import"]
 SCRIPT_VERBS = {
     "substack_heart": "hearted",
     "medium_clap": "clapped",
+    "gmail_substack_archive": "archived",
     "blog_backup": "backed up",
+    "ticketmaster_import": "imported",
 }
 
 FAILURE_RATE_THRESHOLD = 0.30
@@ -29,9 +31,10 @@ BACKUP_DIR = "/home/noob/blog/backups"
 _BACKUP_FILENAME_RE = re.compile(r"^backup-\d{4}-\d{2}-\d{2}\.sql\.gz$")
 
 SCRIPT_COMMANDS = {
-    "substack_heart": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
-    "medium_clap":    ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/medium_clap.py"],
-    "blog_backup":    ["/home/noob/monitor/venv/bin/python", "/home/noob/monitor/run_backup.py"],
+    "substack_heart":         ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
+    "medium_clap":            ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/medium_clap.py"],
+    "gmail_substack_archive": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/gmail_substack_archive.py"],
+    "blog_backup":            ["/home/noob/monitor/venv/bin/python", "/home/noob/monitor/run_backup.py"],
 }
 
 _running: dict[str, subprocess.Popen] = {}
@@ -115,7 +118,7 @@ def _is_running(script: str) -> bool:
 
 @app.route("/trigger/<script>", methods=["POST"])
 def trigger_script(script):
-    if script not in SCRIPTS:
+    if script not in SCRIPT_COMMANDS:
         abort(404)
     if _is_running(script):
         return redirect(f"/?busy={script}")
@@ -150,6 +153,7 @@ def index():
             "name": name,
             "display": name.replace("_", " "),
             "verb": SCRIPT_VERBS.get(name, "processed"),
+            "triggerable": name in SCRIPT_COMMANDS,
             "last": last,
             "history": get_run_history(name, days=14),
             "runs": runs,

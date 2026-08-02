@@ -1,6 +1,6 @@
 # Script Monitor
 
-A Flask dashboard that tracks daily runs of `substack_heart`, `medium_clap`, and `blog_backup`, sends email alerts on failure, and lets you trigger runs manually.
+A Flask dashboard that tracks daily runs of several scripts (`substack_heart`, `medium_clap`, `gmail_substack_archive`, `blog_backup`, `ticketmaster_import`), sends email alerts on failure, and lets you trigger runs manually.
 
 Live at **https://monitor.mikeyclarke.co.nz** (HTTP Basic Auth protected).
 
@@ -18,9 +18,11 @@ Live at **https://monitor.mikeyclarke.co.nz** (HTTP Basic Auth protected).
 Scripts POST their results to `POST /api/run` after each run. The server stores runs in SQLite, evaluates status, and sends alerts if needed. `check_missing.py` runs via cron at 14:00 to catch scripts that never reported.
 
 ```
-substack_heart  ──┐
-medium_clap     ──┤  POST /api/run  →  Flask app  →  SQLite
-blog_backup     ──┘                              ↘  Gmail alerts
+substack_heart          ──┐
+medium_clap             ──┤
+gmail_substack_archive  ──┤  POST /api/run  →  Flask app  →  SQLite
+blog_backup             ──┤                              ↘  Gmail alerts
+ticketmaster_import     ──┘
 ```
 
 ## Stack
@@ -74,8 +76,10 @@ Alerts use Gmail SMTP with an App Password (not OAuth) — configured in `.env`.
 | Script | Verb | Runs on |
 |---|---|---|
 | `substack_heart` | hearted | mikeyclarke.co.nz server, 00:00 UTC |
-| `medium_clap` | clapped | mikeyclarke.co.nz server, 00:05 UTC |
+| `medium_clap` | clapped | mikeyclarke.co.nz server, 01:00 UTC |
+| `gmail_substack_archive` | archived | mikeyclarke.co.nz server, 02:00 UTC |
 | `blog_backup` | backed up | mikeyclarke.co.nz server, 02:00 UTC |
+| `ticketmaster_import` | imported | comedy-gigs-app (remote; reports in, not triggerable) |
 
 ## Tests
 

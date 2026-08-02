@@ -28,11 +28,13 @@
       <div class="card-header">
         <span class="dot"></span>
         <h2>{{ script.display }}</h2>
+        {% if script.triggerable %}
         <form method="post" action="/trigger/{{ script.name }}" style="margin-left:auto">
           <button type="submit" class="btn-run" {% if script.name in running %}disabled{% endif %}>
             {%- if script.name in running %}Running…{% else %}Run now{% endif -%}
           </button>
         </form>
+        {% endif %}
       </div>
 
       {% if last %}

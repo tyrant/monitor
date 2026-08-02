@@ -12,7 +12,9 @@ def _record_today(db, script):
 def test_no_alert_when_all_scripts_ran_today(fresh_db):
     _record_today(fresh_db, "substack_heart")
     _record_today(fresh_db, "medium_clap")
+    _record_today(fresh_db, "gmail_substack_archive")
     _record_today(fresh_db, "blog_backup")
+    _record_today(fresh_db, "ticketmaster_import")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -36,7 +38,9 @@ def test_alerts_when_no_scripts_ran_today(fresh_db):
 
 def test_alerts_only_for_missing_script(fresh_db):
     _record_today(fresh_db, "substack_heart")
+    _record_today(fresh_db, "gmail_substack_archive")
     _record_today(fresh_db, "blog_backup")
+    _record_today(fresh_db, "ticketmaster_import")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -53,6 +57,8 @@ def test_alerts_only_for_missing_script(fresh_db):
 def test_alerts_when_blog_backup_missing(fresh_db):
     _record_today(fresh_db, "substack_heart")
     _record_today(fresh_db, "medium_clap")
+    _record_today(fresh_db, "gmail_substack_archive")
+    _record_today(fresh_db, "ticketmaster_import")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -63,10 +69,42 @@ def test_alerts_when_blog_backup_missing(fresh_db):
     assert "blog_backup" in mock_alert.call_args[0][0]
 
 
-def test_prints_ok_when_all_ran(fresh_db, capsys):
+def test_alerts_when_ticketmaster_import_missing(fresh_db):
+    _record_today(fresh_db, "substack_heart")
+    _record_today(fresh_db, "medium_clap")
+    _record_today(fresh_db, "gmail_substack_archive")
+    _record_today(fresh_db, "blog_backup")
+
+    with patch("alert.send_alert") as mock_alert:
+        import importlib, check_missing
+        importlib.reload(check_missing)
+        check_missing.main()
+
+    mock_alert.assert_called_once()
+    assert "ticketmaster_import" in mock_alert.call_args[0][0]
+
+
+def test_alerts_when_gmail_substack_archive_missing(fresh_db):
     _record_today(fresh_db, "substack_heart")
     _record_today(fresh_db, "medium_clap")
     _record_today(fresh_db, "blog_backup")
+    _record_today(fresh_db, "ticketmaster_import")
+
+    with patch("alert.send_alert") as mock_alert:
+        import importlib, check_missing
+        importlib.reload(check_missing)
+        check_missing.main()
+
+    mock_alert.assert_called_once()
+    assert "gmail_substack_archive" in mock_alert.call_args[0][0]
+
+
+def test_prints_ok_when_all_ran(fresh_db, capsys):
+    _record_today(fresh_db, "substack_heart")
+    _record_today(fresh_db, "medium_clap")
+    _record_today(fresh_db, "gmail_substack_archive")
+    _record_today(fresh_db, "blog_backup")
+    _record_today(fresh_db, "ticketmaster_import")
 
     with patch("alert.send_alert"):
         import importlib, check_missing

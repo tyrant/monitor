@@ -37,7 +37,7 @@ def test_index_shows_script_names(app_client):
 
 def test_index_shows_no_runs_when_empty(app_client):
     html = app_client.get("/").data.decode()
-    assert html.count("No runs recorded") == 3
+    assert html.count("No runs recorded") == 5
 
 
 def test_index_shows_run_history_after_run_posted(app_client):
@@ -195,6 +195,54 @@ def test_post_run_blog_backup_crash_sends_alert(app_client):
     assert "crashed" in mock_alert.call_args[0][0]
 
 
+# ── gmail_substack_archive script ─────────────────────────────────────────────
+
+def test_index_shows_gmail_substack_archive(app_client):
+    html = app_client.get("/").data.decode()
+    assert "gmail substack archive" in html
+
+
+def test_post_run_accepts_gmail_substack_archive(app_client, fresh_db):
+    resp = _post(app_client, _run_payload(script="gmail_substack_archive", processed=7, failed=0))
+    assert resp.status_code == 200
+    assert fresh_db.get_last_run("gmail_substack_archive")["processed"] == 7
+
+
+def test_index_shows_archived_verb(app_client):
+    _post(app_client, _run_payload(script="gmail_substack_archive", processed=7))
+    html = app_client.get("/").data.decode()
+    assert "archived" in html
+
+
+def test_trigger_gmail_substack_archive_calls_correct_command(app_client):
+    with patch("app.subprocess.Popen", return_value=MagicMock()) as mock_popen:
+        app_client.post("/trigger/gmail_substack_archive")
+    assert "gmail_substack_archive.py" in mock_popen.call_args[0][0][-1]
+
+
+# ── ticketmaster_import script (remote, not triggerable) ──────────────────────
+
+def test_index_shows_ticketmaster_import(app_client):
+    html = app_client.get("/").data.decode()
+    assert "ticketmaster import" in html
+
+
+def test_post_run_accepts_ticketmaster_import(app_client, fresh_db):
+    resp = _post(app_client, _run_payload(script="ticketmaster_import", processed=1021, failed=35))
+    assert resp.status_code == 200
+    assert fresh_db.get_last_run("ticketmaster_import")["processed"] == 1021
+
+
+def test_trigger_ticketmaster_import_returns_404(app_client):
+    resp = app_client.post("/trigger/ticketmaster_import")
+    assert resp.status_code == 404
+
+
+def test_index_no_run_now_button_for_ticketmaster_import(app_client):
+    html = app_client.get("/").data.decode()
+    assert "/trigger/ticketmaster_import" not in html
+
+
 # ── GET /backup/<filename> ────────────────────────────────────────────────────
 
 def test_download_backup_rejects_invalid_filename(app_client):
@@ -340,7 +388,7 @@ def test_trigger_unavailable_redirects_gracefully(app_client):
 
 def test_index_shows_run_now_buttons(app_client):
     html = app_client.get("/").data.decode()
-    assert html.count("Run now") == 3
+    assert html.count("Run now") == 4
 
 
 def test_index_shows_triggered_message(app_client):
