@@ -3,7 +3,7 @@
 #   bash deploy.sh
 set -euo pipefail
 
-SERVER="noob@119.9.131.4"
+SERVER="noob@168.144.167.177"
 REMOTE_DIR="/home/noob/monitor"
 
 echo "==> Syncing files..."
