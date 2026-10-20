@@ -26,13 +26,13 @@ echo "    API key: $API_KEY"
 echo "    (add MONITOR_API_KEY=$API_KEY to your Mac environment — e.g. ~/.zshrc)"
 echo ""
 
-echo "==> Creating .env on server (edit to fill in Gmail app password)..."
+echo "==> Creating .env on server (edit to fill in the Resend API key)..."
 ssh "$SERVER" bash <<EOF
   cat > /home/noob/monitor/.env <<ENVFILE
 MONITOR_API_KEY=$API_KEY
-MONITOR_ALERT_FROM=deathtomosttyrants@gmail.com
+MONITOR_ALERT_FROM=Monitor <monitor@sexyverse.email>
 MONITOR_ALERT_TO=deathtomosttyrants@gmail.com
-MONITOR_GMAIL_APP_PASSWORD=REPLACE_WITH_APP_PASSWORD
+MONITOR_RESEND_API_KEY=REPLACE_WITH_RESEND_API_KEY
 MONITOR_DB_PATH=/home/noob/monitor/monitor.db
 ENVFILE
   chmod 600 /home/noob/monitor/.env
@@ -55,8 +55,8 @@ ssh -t "$SERVER" "sudo apt-get install -y certbot && sudo /opt/nginx/sbin/nginx 
 echo ""
 echo "==> Manual steps remaining:"
 echo "    1. Add DNS A record: monitor.mikeyclarke.co.nz -> 119.9.131.4"
-echo "    2. Edit /home/noob/monitor/.env and fill in MONITOR_GMAIL_APP_PASSWORD"
-echo "       (create a Gmail App Password at myaccount.google.com/apppasswords)"
+echo "    2. Edit /home/noob/monitor/.env and fill in MONITOR_RESEND_API_KEY"
+echo "       (the blog's Resend key works; FROM must be on a Resend-verified domain)"
 echo "    3. Add the nginx_fragment.conf blocks to /opt/nginx/conf/nginx.conf"
 echo "    4. Reload nginx: sudo /opt/nginx/sbin/nginx -s reload"
 echo "    5. Add to crontab on server:"

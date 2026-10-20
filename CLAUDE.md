@@ -38,7 +38,7 @@ bash setup_server.sh    # first-time only
 - Crash (traceback / login failure): immediate email alert
 - >30% failure rate: immediate warning email (different subject prefix)
 - No run by 14:00: daily cron sends warning email
-- Alerts use Gmail SMTP with App Password (not OAuth) — set in `.env`
+- Alerts use Resend's HTTPS API (DO blocks outbound SMTP) — `MONITOR_RESEND_API_KEY` + `MONITOR_ALERT_FROM` in `.env`
 
 ## Monitored scripts
 - `substack_heart` — `~/Work/scripts/substack_heart.py`

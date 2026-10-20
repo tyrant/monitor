@@ -29,7 +29,7 @@ ticketmaster_import     ──┘
 
 - Python 3.12 / Flask 3 / Gunicorn
 - SQLite (`monitor.db` — not in git)
-- Gmail SMTP with App Password for alerts
+- Resend HTTPS API for alerts (DigitalOcean blocks outbound SMTP)
 - nginx (custom install at `/opt/nginx/`) with HTTP Basic Auth on the web UI
 - `/api/run` is exempt from Basic Auth — authenticated by `X-API-Key` header
 
@@ -69,7 +69,7 @@ bash setup_server.sh    # first-time only
 | >30% failure rate on a run | Immediate email with percentage |
 | Script hasn't reported by 14:00 server time | Daily cron email |
 
-Alerts use Gmail SMTP with an App Password (not OAuth) — configured in `.env`.
+Alerts go through Resend's HTTPS API (DigitalOcean blocks outbound SMTP) — `MONITOR_RESEND_API_KEY` and `MONITOR_ALERT_FROM` (on a Resend-verified domain) in `.env`.
 
 ## Monitored scripts
 
