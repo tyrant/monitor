@@ -121,3 +121,40 @@ def test_prints_alert_sent_when_missing(fresh_db, capsys):
         check_missing.main()
 
     assert "Alert sent" in capsys.readouterr().out
+
+
+# ── check_missing.load_env_file ───────────────────────────────────────────────
+
+def test_load_env_file_sets_unset_variables(tmp_path, monkeypatch):
+    monkeypatch.delenv("MONITOR_TEST_VAR", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("MONITOR_TEST_VAR=Monitor <monitor@example.com>\n")
+    import check_missing
+    check_missing.load_env_file(str(env_file))
+    import os
+    assert os.environ["MONITOR_TEST_VAR"] == "Monitor <monitor@example.com>"
+
+
+def test_load_env_file_keeps_existing_variables(tmp_path, monkeypatch):
+    monkeypatch.setenv("MONITOR_TEST_VAR", "from-cron")
+    env_file = tmp_path / ".env"
+    env_file.write_text("MONITOR_TEST_VAR=from-file\n")
+    import check_missing
+    check_missing.load_env_file(str(env_file))
+    import os
+    assert os.environ["MONITOR_TEST_VAR"] == "from-cron"
+
+
+def test_load_env_file_skips_comments_and_blank_lines(tmp_path, monkeypatch):
+    monkeypatch.delenv("MONITOR_TEST_VAR", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text("# MONITOR_TEST_VAR=commented\n\nnot a setting\n")
+    import check_missing
+    check_missing.load_env_file(str(env_file))
+    import os
+    assert "MONITOR_TEST_VAR" not in os.environ
+
+
+def test_load_env_file_ignores_missing_file(tmp_path):
+    import check_missing
+    check_missing.load_env_file(str(tmp_path / "absent.env"))

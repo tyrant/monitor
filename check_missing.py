@@ -9,6 +9,25 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+ENV_FILE = "/home/noob/monitor/.env"
+
+
+def load_env_file(path=ENV_FILE):
+    # Cron doesn't get the systemd EnvironmentFile, so without this the alert
+    # settings are unset and every missing-run alert is silently skipped.
+    try:
+        with open(path) as env_file:
+            for line in env_file:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    name, value = line.split("=", 1)
+                    os.environ.setdefault(name, value)
+    except OSError:
+        pass
+
+
+load_env_file()
+
 from datetime import date
 
 from alert import send_alert
