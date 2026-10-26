@@ -163,3 +163,38 @@ def test_ran_today_scoped_to_script(fresh_db):
     _record(fresh_db, script="medium_clap", days_ago=0)
     assert fresh_db.ran_today("substack_heart") is False
     assert fresh_db.ran_today("medium_clap") is True
+
+
+# ── host column ───────────────────────────────────────────────────────────────
+
+def test_record_run_stores_host(fresh_db):
+    fresh_db.record_run("medium_clap", _ts(), "success", 1, 0, 0, [], host="Mac")
+    assert fresh_db.get_last_run("medium_clap")["host"] == "Mac"
+
+
+def test_record_run_host_defaults_to_none(fresh_db):
+    _record(fresh_db)
+    assert fresh_db.get_last_run("substack_heart")["host"] is None
+
+
+def test_init_db_adds_host_column_to_existing_table(fresh_db):
+    import sqlite3
+    with sqlite3.connect(fresh_db.DB_PATH) as conn:
+        conn.execute("DROP TABLE runs")
+        conn.execute(
+            """CREATE TABLE runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, script TEXT NOT NULL,
+                ran_at TEXT NOT NULL, status TEXT NOT NULL,
+                processed INTEGER NOT NULL DEFAULT 0, failed INTEGER NOT NULL DEFAULT 0,
+                skipped INTEGER NOT NULL DEFAULT 0, errors TEXT NOT NULL DEFAULT '[]',
+                received_at TEXT NOT NULL DEFAULT (datetime('now')))"""
+        )
+        conn.execute("INSERT INTO runs (script, ran_at, status) VALUES ('medium_clap', '2026-10-01', 'success')")
+    fresh_db.init_db()
+    assert fresh_db.get_last_run("medium_clap")["host"] is None
+
+
+def test_init_db_is_idempotent_with_host_column(fresh_db):
+    fresh_db.init_db()
+    fresh_db.record_run("medium_clap", _ts(), "success", 1, 0, 0, [], host="Prod")
+    assert fresh_db.get_last_run("medium_clap")["host"] == "Prod"

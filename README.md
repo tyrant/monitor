@@ -8,8 +8,8 @@ Live at **https://monitor.mikeyclarke.co.nz** (HTTP Basic Auth protected).
 
 - Per-script status cards with colour-coded indicators (green / amber / red)
 - 14-day sparkline history per script
-- Paginated run history table (10 runs per page) with per-row warning details
-- **Run now** button to trigger a script execution on demand
+- Paginated run history table (10 runs per page) with per-row warning details and where each run executed ("Ran on": Mac or Prod, sent by the reporter as `host`)
+- **Run now** button to trigger a server-side script execution on demand
 - Immediate email alerts on crash or >30% failure rate
 - Daily cron alert if any script hasn't reported in by 14:00 server time
 
@@ -76,7 +76,7 @@ Alerts go through Resend's HTTPS API (DigitalOcean blocks outbound SMTP) — `MO
 | Script | Verb | Runs on |
 |---|---|---|
 | `substack_heart` | hearted | mikeyclarke.co.nz server, 00:00 UTC |
-| `medium_clap` | clapped | mikeyclarke.co.nz server, 01:00 UTC |
+| `medium_clap` | clapped | Mac (launchd), 12:00 local — Cloudflare blocks Medium from the server; not triggerable |
 | `gmail_substack_archive` | archived | mikeyclarke.co.nz server, 02:00 UTC |
 | `blog_backup` | backed up | mikeyclarke.co.nz server, 02:00 UTC |
 | `ticketmaster_import` | imported | comedy-gigs-app (remote; reports in, not triggerable) |

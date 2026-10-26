@@ -23,6 +23,8 @@ SCRIPT_VERBS = {
     "ticketmaster_import": "imported",
 }
 
+HOST_MAX_LENGTH = 32
+
 FAILURE_RATE_THRESHOLD = 0.30
 PAGE_SIZE = 10
 
@@ -32,7 +34,6 @@ _BACKUP_FILENAME_RE = re.compile(r"^backup-\d{4}-\d{2}-\d{2}\.sql\.gz$")
 
 SCRIPT_COMMANDS = {
     "substack_heart":         ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/substack_heart.py"],
-    "medium_clap":            ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/medium_clap.py"],
     "gmail_substack_archive": ["/home/noob/scripts/venv/bin/python", "/home/noob/scripts/gmail_substack_archive.py"],
     "blog_backup":            ["/home/noob/monitor/venv/bin/python", "/home/noob/monitor/run_backup.py"],
 }
@@ -184,10 +185,12 @@ def receive_run():
     skipped = int(data.get("skipped", 0))
     errors = data.get("errors") or []
     ran_at = data.get("ran_at") or datetime.now(timezone.utc).isoformat()
+    host = data.get("host")
+    host = host[:HOST_MAX_LENGTH] if isinstance(host, str) and host else None
 
     status = _determine_status(data.get("status", "success"), processed, failed)
 
-    record_run(script, ran_at, status, processed, failed, skipped, errors)
+    record_run(script, ran_at, status, processed, failed, skipped, errors, host)
 
     if status == "crashed":
         send_alert(

@@ -42,7 +42,7 @@ bash setup_server.sh    # first-time only
 
 ## Monitored scripts
 - `substack_heart` — `~/Work/scripts/substack_heart.py`
-- `medium_clap` — `~/Work/scripts/medium_clap.py`
+- `medium_clap` — `~/Work/scripts/medium_clap.py` (runs on the Mac via launchd; not triggerable)
 - `gmail_substack_archive` — `~/Work/scripts/gmail_substack_archive.py`
 - `blog_backup` — `~/Work/monitor/run_backup.py`
 - `ticketmaster_import` — `comedy-gigs-app` (remote; reports in, not triggerable)

@@ -27,20 +27,24 @@ def init_db():
                 failed      INTEGER NOT NULL DEFAULT 0,
                 skipped     INTEGER NOT NULL DEFAULT 0,
                 errors      TEXT    NOT NULL DEFAULT '[]',
-                received_at TEXT    NOT NULL DEFAULT (datetime('now'))
+                received_at TEXT    NOT NULL DEFAULT (datetime('now')),
+                host        TEXT
             )
         """)
+        columns = {row["name"] for row in conn.execute("PRAGMA table_info(runs)")}
+        if "host" not in columns:
+            conn.execute("ALTER TABLE runs ADD COLUMN host TEXT")
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_runs_script_ran_at ON runs(script, ran_at)"
         )
 
 
-def record_run(script, ran_at, status, processed, failed, skipped, errors):
+def record_run(script, ran_at, status, processed, failed, skipped, errors, host=None):
     with _conn() as conn:
         conn.execute(
-            """INSERT INTO runs (script, ran_at, status, processed, failed, skipped, errors)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (script, ran_at, status, processed, failed, skipped, json.dumps(errors or [])),
+            """INSERT INTO runs (script, ran_at, status, processed, failed, skipped, errors, host)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (script, ran_at, status, processed, failed, skipped, json.dumps(errors or []), host),
         )
 
 

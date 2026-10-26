@@ -140,3 +140,13 @@ def test_main_calls_correct_backup_script():
         run_backup.main()
 
     assert mock_sub.call_args[0][0] == ["bash", run_backup.BACKUP_SCRIPT]
+
+
+def test_post_result_sends_host():
+    import importlib, json, run_backup
+    importlib.reload(run_backup)
+
+    with patch("urllib.request.urlopen") as mock_open, patch.object(run_backup.sys, "platform", "linux"):
+        run_backup.post_result("key", "success", [])
+
+    assert json.loads(mock_open.call_args[0][0].data)["host"] == "Prod"

@@ -388,7 +388,7 @@ def test_trigger_unavailable_redirects_gracefully(app_client):
 
 def test_index_shows_run_now_buttons(app_client):
     html = app_client.get("/").data.decode()
-    assert html.count("Run now") == 4
+    assert html.count("Run now") == 3
 
 
 def test_index_shows_triggered_message(app_client):
@@ -427,3 +427,55 @@ def test_unavailable_alert_has_dismiss_link(app_client):
 def test_alert_dismiss_preserves_other_query_params(app_client):
     html = app_client.get("/?triggered=substack_heart&substack_heart_page=2").data.decode()
     assert 'href="/?substack_heart_page=2"' in html
+
+
+# ── medium_clap (runs on the Mac, not triggerable from the server) ────────────
+
+def test_trigger_medium_clap_returns_404(app_client):
+    resp = app_client.post("/trigger/medium_clap")
+    assert resp.status_code == 404
+
+
+def test_index_no_run_now_button_for_medium_clap(app_client):
+    html = app_client.get("/").data.decode()
+    assert "/trigger/medium_clap" not in html
+
+
+# ── run host ──────────────────────────────────────────────────────────────────
+
+def test_post_run_stores_host(app_client, fresh_db):
+    _post(app_client, _run_payload(host="Mac"))
+    assert fresh_db.get_last_run("substack_heart")["host"] == "Mac"
+
+
+def test_post_run_without_host_stores_none(app_client, fresh_db):
+    _post(app_client, _run_payload())
+    assert fresh_db.get_last_run("substack_heart")["host"] is None
+
+
+def test_post_run_ignores_non_string_host(app_client, fresh_db):
+    _post(app_client, _run_payload(host=["Mac"]))
+    assert fresh_db.get_last_run("substack_heart")["host"] is None
+
+
+def test_post_run_truncates_long_host(app_client, fresh_db):
+    _post(app_client, _run_payload(host="x" * 100))
+    assert fresh_db.get_last_run("substack_heart")["host"] == "x" * 32
+
+
+def test_index_shows_ran_on_column(app_client):
+    _post(app_client, _run_payload(host="Prod"))
+    html = app_client.get("/").data.decode()
+    assert "<th>Ran on</th>" in html
+
+
+def test_index_shows_run_host(app_client):
+    _post(app_client, _run_payload(host="Prod"))
+    html = app_client.get("/").data.decode()
+    assert "<td>Prod</td>" in html
+
+
+def test_index_shows_dash_for_unknown_host(app_client):
+    _post(app_client, _run_payload())
+    html = app_client.get("/").data.decode()
+    assert "<td>—</td>" in html

@@ -31,6 +31,7 @@ def post_result(api_key, status, errors):
         "skipped": 0,
         "errors": errors,
         "ran_at": datetime.now(timezone.utc).isoformat(),
+        "host": "Mac" if sys.platform == "darwin" else "Prod",
     }).encode()
     req = urllib.request.Request(
         MONITOR_URL,

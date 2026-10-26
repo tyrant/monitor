@@ -86,6 +86,7 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
             <tr>
               <th>Date</th>
               <th>Status</th>
+              <th>Ran on</th>
               <th>{{ script.verb | capitalize }}</th>
               <th>Failed</th>
               <th>Skipped</th>
@@ -97,6 +98,7 @@ Processed: {{ day.processed }}  Failed: {{ day.failed }}  Skipped: {{ day.skippe
             <tr class="row-{{ run.status }}">
               <td class="td-date" title="{{ run.ran_at_fmt.title }}">{{ run.ran_at_fmt.display }}</td>
               <td><span class="badge badge-{{ run.status }}">{{ run.status }}</span></td>
+              <td>{{ run.host or '—' }}</td>
               <td>{{ run.processed }}</td>
               <td class="{{ 'td-failed' if run.failed > 0 }}">{{ run.failed }}</td>
               <td>{{ run.skipped }}</td>
