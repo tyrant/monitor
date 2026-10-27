@@ -30,7 +30,7 @@ ticketmaster_import     ──┘
 - Python 3.12 / Flask 3 / Gunicorn
 - SQLite (`monitor.db` — not in git)
 - Resend HTTPS API for alerts (DigitalOcean blocks outbound SMTP)
-- nginx (custom install at `/opt/nginx/`) with HTTP Basic Auth on the web UI
+- nginx (Ubuntu package, config under `/etc/nginx/`) with HTTP Basic Auth on the web UI
 - `/api/run` is exempt from Basic Auth — authenticated by `X-API-Key` header
 
 ## Local dev
@@ -59,7 +59,8 @@ bash setup_server.sh    # first-time only
 | Env | `/home/noob/monitor/.env` |
 | Logs | `sudo journalctl -u monitor -f` |
 | Systemd | `sudo systemctl [start\|stop\|restart\|status] monitor` |
-| nginx config | `/opt/nginx/conf/nginx.conf` |
+| nginx config | `/etc/nginx/sites-available/monitor` (symlinked into `sites-enabled/`) |
+| nginx reload | `sudo nginx -t && sudo systemctl reload nginx` |
 
 ## Alert behaviour
 

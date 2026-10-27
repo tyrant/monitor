@@ -5,7 +5,7 @@ Flask dashboard for monitoring `substack_heart.py` and `medium_clap.py`.
 ## Stack
 - Python 3.12 / Flask 3 / Gunicorn
 - SQLite (monitor.db — not in git)
-- Deployed to `monitor.mikeyclarke.co.nz` on 119.9.131.4
+- Deployed to `monitor.mikeyclarke.co.nz` on 168.144.167.177 (DigitalOcean)
 
 ## Architecture
 - Scripts POST JSON to `POST /api/run` after each run (via `~/Work/scripts/monitor_client.py`)
@@ -32,7 +32,7 @@ bash setup_server.sh    # first-time only
 - DB: `/home/noob/monitor/monitor.db`
 - Env: `/home/noob/monitor/.env`
 - Systemd: `sudo systemctl [start|stop|restart|status] monitor`
-- nginx config: `/opt/nginx/conf/nginx.conf` (custom install, not system nginx)
+- nginx config: `/etc/nginx/sites-available/monitor` (Ubuntu package nginx; reload with `sudo nginx -t && sudo systemctl reload nginx`)
 
 ## Alert behaviour
 - Crash (traceback / login failure): immediate email alert
