@@ -251,6 +251,12 @@ def test_post_run_accepts_gig_cleanup(app_client, fresh_db):
     assert fresh_db.get_last_run("gig_cleanup")["processed"] == 42
 
 
+def test_post_run_accepts_act_bios(app_client, fresh_db):
+    resp = _post(app_client, _run_payload(script="act_bios", processed=23, failed=0))
+    assert resp.status_code == 200
+    assert fresh_db.get_last_run("act_bios")["processed"] == 23
+
+
 def test_trigger_ticketmaster_import_returns_404(app_client):
     resp = app_client.post("/trigger/ticketmaster_import")
     assert resp.status_code == 404

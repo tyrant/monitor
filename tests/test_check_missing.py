@@ -17,6 +17,7 @@ def test_no_alert_when_all_scripts_ran_today(fresh_db):
     _record_today(fresh_db, "ticketmaster_import")
     _record_today(fresh_db, "eventfinda_import")
     _record_today(fresh_db, "gig_cleanup")
+    _record_today(fresh_db, "act_bios")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -45,6 +46,7 @@ def test_alerts_only_for_missing_script(fresh_db):
     _record_today(fresh_db, "ticketmaster_import")
     _record_today(fresh_db, "eventfinda_import")
     _record_today(fresh_db, "gig_cleanup")
+    _record_today(fresh_db, "act_bios")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -65,6 +67,7 @@ def test_alerts_when_blog_backup_missing(fresh_db):
     _record_today(fresh_db, "ticketmaster_import")
     _record_today(fresh_db, "eventfinda_import")
     _record_today(fresh_db, "gig_cleanup")
+    _record_today(fresh_db, "act_bios")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -97,6 +100,7 @@ def test_alerts_when_eventfinda_import_missing(fresh_db):
     _record_today(fresh_db, "blog_backup")
     _record_today(fresh_db, "ticketmaster_import")
     _record_today(fresh_db, "gig_cleanup")
+    _record_today(fresh_db, "act_bios")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -110,7 +114,7 @@ def test_alerts_when_eventfinda_import_missing(fresh_db):
 
 def test_alerts_when_gig_cleanup_missing(fresh_db):
     for script in ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup",
-                   "ticketmaster_import", "eventfinda_import"]:
+                   "ticketmaster_import", "eventfinda_import", "act_bios"]:
         _record_today(fresh_db, script)
 
     with patch("alert.send_alert") as mock_alert:
@@ -122,6 +126,21 @@ def test_alerts_when_gig_cleanup_missing(fresh_db):
     assert "gig_cleanup" in mock_alert.call_args[0][0]
 
 
+def test_alerts_when_act_bios_missing(fresh_db):
+    for script in ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup",
+                   "ticketmaster_import", "eventfinda_import", "gig_cleanup"]:
+        _record_today(fresh_db, script)
+
+    with patch("alert.send_alert") as mock_alert:
+        import importlib, check_missing
+        importlib.reload(check_missing)
+        check_missing.main()
+
+    mock_alert.assert_called_once()
+    assert "act_bios" in mock_alert.call_args[0][0]
+    assert "gig_cleanup" not in mock_alert.call_args[0][0]
+
+
 def test_alerts_when_gmail_substack_archive_missing(fresh_db):
     _record_today(fresh_db, "substack_heart")
     _record_today(fresh_db, "medium_clap")
@@ -129,6 +148,7 @@ def test_alerts_when_gmail_substack_archive_missing(fresh_db):
     _record_today(fresh_db, "ticketmaster_import")
     _record_today(fresh_db, "eventfinda_import")
     _record_today(fresh_db, "gig_cleanup")
+    _record_today(fresh_db, "act_bios")
 
     with patch("alert.send_alert") as mock_alert:
         import importlib, check_missing
@@ -147,6 +167,7 @@ def test_prints_ok_when_all_ran(fresh_db, capsys):
     _record_today(fresh_db, "ticketmaster_import")
     _record_today(fresh_db, "eventfinda_import")
     _record_today(fresh_db, "gig_cleanup")
+    _record_today(fresh_db, "act_bios")
 
     with patch("alert.send_alert"):
         import importlib, check_missing
