@@ -46,5 +46,6 @@ bash setup_server.sh    # first-time only
 - `gmail_substack_archive` — `~/Work/scripts/gmail_substack_archive.py`
 - `blog_backup` — `~/Work/monitor/run_backup.py`
 - `ticketmaster_import` — `comedy-gigs-app` (remote; reports in, not triggerable)
+- `eventfinda_import` — `comedy-gigs-app` (remote; reports in, not triggerable)
 
 The `SCRIPTS` list is duplicated in `app.py` and `check_missing.py` — update both when adding a script.

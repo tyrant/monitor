@@ -14,13 +14,14 @@ from db import get_all_runs, get_last_run, get_run_count, get_run_history, init_
 app = Flask(__name__)
 
 API_KEY = os.environ.get("MONITOR_API_KEY", "")
-SCRIPTS = ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup", "ticketmaster_import"]
+SCRIPTS = ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup", "ticketmaster_import", "eventfinda_import"]
 SCRIPT_VERBS = {
     "substack_heart": "hearted",
     "medium_clap": "clapped",
     "gmail_substack_archive": "archived",
     "blog_backup": "backed up",
     "ticketmaster_import": "imported",
+    "eventfinda_import": "imported",
 }
 
 HOST_MAX_LENGTH = 32

@@ -37,7 +37,8 @@ def test_index_shows_script_names(app_client):
 
 def test_index_shows_no_runs_when_empty(app_client):
     html = app_client.get("/").data.decode()
-    assert html.count("No runs recorded") == 5
+    import app as monitor_app
+    assert html.count("No runs recorded") == len(monitor_app.SCRIPTS)
 
 
 def test_index_shows_run_history_after_run_posted(app_client):
@@ -231,6 +232,17 @@ def test_post_run_accepts_ticketmaster_import(app_client, fresh_db):
     resp = _post(app_client, _run_payload(script="ticketmaster_import", processed=1021, failed=35))
     assert resp.status_code == 200
     assert fresh_db.get_last_run("ticketmaster_import")["processed"] == 1021
+
+
+def test_post_run_accepts_eventfinda_import(app_client, fresh_db):
+    resp = _post(app_client, _run_payload(script="eventfinda_import", processed=218, failed=0))
+    assert resp.status_code == 200
+    assert fresh_db.get_last_run("eventfinda_import")["processed"] == 218
+
+
+def test_trigger_eventfinda_import_returns_404(app_client):
+    resp = app_client.post("/trigger/eventfinda_import")
+    assert resp.status_code == 404
 
 
 def test_trigger_ticketmaster_import_returns_404(app_client):
