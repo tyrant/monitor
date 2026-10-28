@@ -1,6 +1,6 @@
 # Script Monitor
 
-A Flask dashboard that tracks daily runs of several scripts (`substack_heart`, `medium_clap`, `gmail_substack_archive`, `blog_backup`, `ticketmaster_import`, `eventfinda_import`), sends email alerts on failure, and lets you trigger runs manually.
+A Flask dashboard that tracks daily runs of several scripts (`substack_heart`, `medium_clap`, `gmail_substack_archive`, `blog_backup`, `ticketmaster_import`, `eventfinda_import`, `gig_cleanup`), sends email alerts on failure, and lets you trigger runs manually.
 
 Live at **https://monitor.mikeyclarke.co.nz** (HTTP Basic Auth protected).
 
@@ -23,7 +23,8 @@ medium_clap             ──┤
 gmail_substack_archive  ──┤  POST /api/run  →  Flask app  →  SQLite
 blog_backup             ──┤                              ↘  Gmail alerts
 ticketmaster_import     ──┤
-eventfinda_import       ──┘
+eventfinda_import       ──┤
+gig_cleanup             ──┘
 ```
 
 ## Stack
@@ -83,6 +84,7 @@ Alerts go through Resend's HTTPS API (DigitalOcean blocks outbound SMTP) — `MO
 | `blog_backup` | backed up | mikeyclarke.co.nz server, 02:00 UTC |
 | `ticketmaster_import` | imported | comedy-gigs-app (remote; reports in, not triggerable) |
 | `eventfinda_import` | imported | comedy-gigs-app (remote; reports in, not triggerable) |
+| `gig_cleanup` | removed | comedy-gigs-app, after the imports: old and cancelled gigs pruned (remote; not triggerable) |
 
 ## Tests
 

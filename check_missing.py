@@ -33,7 +33,7 @@ from datetime import date
 from alert import send_alert
 from db import ran_today
 
-SCRIPTS = ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup", "ticketmaster_import", "eventfinda_import"]
+SCRIPTS = ["substack_heart", "medium_clap", "gmail_substack_archive", "blog_backup", "ticketmaster_import", "eventfinda_import", "gig_cleanup"]
 
 
 def main():
