@@ -257,6 +257,12 @@ def test_post_run_accepts_act_bios(app_client, fresh_db):
     assert fresh_db.get_last_run("act_bios")["processed"] == 23
 
 
+def test_post_run_accepts_skiddle_import(app_client, fresh_db):
+    resp = _post(app_client, _run_payload(script="skiddle_import", processed=2578, failed=0))
+    assert resp.status_code == 200
+    assert fresh_db.get_last_run("skiddle_import")["processed"] == 2578
+
+
 def test_trigger_ticketmaster_import_returns_404(app_client):
     resp = app_client.post("/trigger/ticketmaster_import")
     assert resp.status_code == 404
